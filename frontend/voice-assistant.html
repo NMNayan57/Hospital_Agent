@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Hospital - Voice Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        
+        .voice-assistant {
+            max-width: 600px;
+            width: 90%;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .voice-interface {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .phone-input {
+            margin-bottom: 25px;
+        }
+        
+        .phone-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .phone-input input {
+            width: 100%;
+            max-width: 280px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        
+        .phone-input input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        .voice-controls {
+            margin: 30px 0;
+        }
+        
+        .voice-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: none;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .voice-button.start {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .voice-button.listening {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .voice-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .voice-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+        
+        .status-display {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .status {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .status.ready { color: #666; }
+        .status.listening { color: #4CAF50; }
+        .status.processing { color: #FF9800; }
+        .status.speaking { color: #2196F3; }
+        .status.error { color: #f44336; }
+        
+        .connection-status {
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .connection-status.connected { color: #4CAF50; }
+        .connection-status.error { color: #f44336; }
+        
+        .visualizer {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .visualizer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        .conversation-display {
+            max-height: 350px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            line-height: 1.6;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 85%;
+        }
+        
+        .message.user {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .message.ai {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            margin-right: auto;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .message-text {
+            font-size: 0.95rem;
+        }
+        
+        .emotion-tag {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        
+        .welcome-message {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border-left: 4px solid #FF9800;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .welcome-message h3 {
+            color: #ef6c00;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-message p {
+            color: #bf360c;
+            line-height: 1.5;
+        }
+        
+        .settings-toggle {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            text-decoration: underline;
+        }
+        
+        .settings {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .settings.show {
+            display: block;
+        }
+        
+        .settings h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .setting-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .setting-item label {
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .setting-item input[type="range"] {
+            flex: 2;
+            margin: 0 10px;
+        }
+        
+        .setting-value {
+            font-weight: 600;
+            color: #2196F3;
+            min-width: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="voice-assistant">
+        <div class="header">
+            <h1>🎙️ X Hospital Voice Assistant</h1>
+            <p>Real-time AI Conversation</p>
+        </div>
+        
+        <div class="voice-interface">
+            <div class="phone-input">
+                <label for="phoneNumber">Your Phone Number:</label>
+                <input type="tel" id="phoneNumber" placeholder="+8801234567890" value="+8801742957256">
+            </div>
+            
+            <div class="voice-controls">
+                <button id="voiceButton" class="voice-button start">🎤</button>
+            </div>
+            
+            <div class="status-display">
+                <div id="status" class="status ready">Ready to start</div>
+                <div id="connectionStatus" class="connection-status">Not connected</div>
+                <div class="visualizer">
+                    <div id="visualizerBar" class="visualizer-bar"></div>
+                </div>
+            </div>
+            
+            <div class="conversation-display" id="conversation">
+                <!-- Messages will appear here -->
+            </div>
+            
+            <div class="welcome-message">
+                <h3>🗣️ How it works:</h3>
+                <p><strong>Just click the microphone and start talking!</strong> I'll greet you first, then listen continuously and respond naturally - just like a real conversation with a hospital receptionist.</p>
+            </div>
+            
+            <button class="settings-toggle" onclick="toggleSettings()">⚙️ Advanced Settings</button>
+            
+            <div class="settings" id="settings">
+                <h3>Voice Settings</h3>
+                <div class="setting-item">
+                    <label>Microphone Sensitivity:</label>
+                    <input type="range" id="vadThreshold" min="0.005" max="0.05" step="0.005" value="0.01">
+                    <span id="vadValue" class="setting-value">0.01</span>
+                </div>
+                <div class="setting-item">
+                    <label>Response Delay:</label>
+                    <input type="range" id="silenceTimeout" min="800" max="3000" step="100" value="1500">
+                    <span id="silenceValue" class="setting-value">1.5s</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class HospitalVoiceAssistant {
+            constructor() {
+                this.isListening = false;
+                this.isProcessing = false;
+                this.isSpeaking = false;
+                this.stream = null;
+                this.audioContext = null;
+                this.processor = null;
+                this.websocket = null;
+                this.vadThreshold = 0.01;
+                this.silenceDuration = 0;
+                this.maxSilence = 1500;
+                this.minRecordingTime = 500;
+                this.recordingStartTime = 0;
+                this.audioChunks = [];
+                this.conversationStarted = false;
+                
+                // Voice Activity Detection
+                this.vadAnalyzer = null;
+                this.vadDataArray = null;
+                
+                // UI elements
+                this.statusElement = null;
+                this.connectionElement = null;
+                this.visualizerBar = null;
+                this.conversationElement = null;
+                
+                // Configuration
+                this.phoneNumber = null;
+                this.sessionId = null;
+                
+                this.initializeAudio();
+            }
+            
+            async initializeAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            channelCount: 1,
+                            sampleRate: 16000,
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+                    
+                    console.log('🎤 Microphone access granted');
+                    this.setupAudioProcessing();
+                    this.setupVoiceActivityDetection();
+                    
+                } catch (error) {
+                    console.error('❌ Error initializing audio:', error);
+                    this.updateStatus('Microphone access denied. Please allow microphone access and refresh.', 'error');
+                }
+            }
+            
+            setupAudioProcessing() {
+                const source = this.audioContext.createMediaStreamSource(this.stream);
+                this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+                
+                source.connect(this.processor);
+                this.processor.connect(this.audioContext.destination);
+                
+                this.processor.onaudioprocess = (e) => {
+                    if (!this.isListening || this.isSpeaking) return;
+                    
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    this.processAudioChunk(inputData);
+                };
+            }
+            
+            setupVoiceActivityDetection() {
+                const source = this.audioContext.createMediaStreamSource(this.stream);
+                this.vadAnalyzer = this.audioContext.createAnalyser();
+                this.vadAnalyzer.fftSize = 256;
+                this.vadDataArray = new Uint8Array(this.vadAnalyzer.frequencyBinCount);
+                
+                source.connect(this.vadAnalyzer);
+                this.vadLoop();
+            }
+            
+            vadLoop() {
+                if (!this.vadAnalyzer) return;
+                
+                this.vadAnalyzer.getByteFrequencyData(this.vadDataArray);
+                
+                let sum = 0;
+                for (let i = 0; i < this.vadDataArray.length; i++) {
+                    sum += this.vadDataArray[i];
+                }
+                const average = sum / this.vadDataArray.length / 255;
+                
+                this.updateVisualizer(average);
+                
+                if (this.isListening && !this.isSpeaking) {
+                    this.detectVoiceActivity(average);
+                }
+                
+                requestAnimationFrame(() => this.vadLoop());
+            }
+            
+            detectVoiceActivity(level) {
+                const now = Date.now();
+                
+                if (level > this.vadThreshold) {
+                    if (this.silenceDuration > 0) {
+                        console.log('🗣️ Voice activity detected');
+                        this.updateStatus('Listening...', 'listening');
+                    }
+                    
+                    this.silenceDuration = 0;
+                    
+                    if (!this.recordingStartTime) {
+                        this.recordingStartTime = now;
+                        this.audioChunks = [];
+                    }
+                } else {
+                    if (this.recordingStartTime && !this.isProcessing) {
+                        this.silenceDuration += 16;
+                        
+                        const recordingDuration = now - this.recordingStartTime;
+                        
+                        if (this.silenceDuration >= this.maxSilence && 
+                            recordingDuration >= this.minRecordingTime && 
+                            this.audioChunks.length > 0) {
+                            
+                            console.log('🔇 Silence detected, processing audio');
+                            this.processRecordedAudio();
+                        }
+                    }
+                }
+            }
+            
+            processAudioChunk(audioData) {
+                if (this.recordingStartTime) {
+                    const buffer = new ArrayBuffer(audioData.length * 2);
+                    const view = new DataView(buffer);
+                    
+                    for (let i = 0; i < audioData.length; i++) {
+                        const sample = Math.max(-1, Math.min(1, audioData[i]));
+                        view.setInt16(i * 2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    }
+                    
+                    this.audioChunks.push(new Uint8Array(buffer));
+                }
+            }
+            
+            async processRecordedAudio() {
+                if (this.isProcessing || this.audioChunks.length === 0) return;
+                
+                this.isProcessing = true;
+                this.updateStatus('Processing...', 'processing');
+                
+                try {
+                    const totalLength = this.audioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                    const combinedAudio = new Uint8Array(totalLength);
+                    let offset = 0;
+                    
+                    for (const chunk of this.audioChunks) {
+                        combinedAudio.set(chunk, offset);
+                        offset += chunk.length;
+                    }
+                    
+                    const audioBase64 = btoa(String.fromCharCode(...combinedAudio));
+                    await this.sendAudioToBackend(audioBase64);
+                    
+                } catch (error) {
+                    console.error('❌ Error processing audio:', error);
+                    this.updateStatus('Processing error', 'error');
+                } finally {
+                    this.recordingStartTime = 0;
+                    this.audioChunks = [];
+                    this.silenceDuration = 0;
+                    this.isProcessing = false;
+                }
+            }
+            
+            async sendAudioToBackend(audioBase64) {
+                if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
+                    await this.connectWebSocket();
+                }
+                
+                const message = {
+                    type: 'voice_input',
+                    audio_data: audioBase64,
+                    phone_number: this.phoneNumber,
+                    session_id: this.sessionId,
+                    timestamp: Date.now()
+                };
+                
+                this.websocket.send(JSON.stringify(message));
+                console.log('📤 Sent audio to backend');
+            }
+            
+            async connectWebSocket() {
+                return new Promise((resolve, reject) => {
+                    const wsUrl = `ws://localhost:8000/ws/voice?phone_number=${encodeURIComponent(this.phoneNumber)}`;
+                    
+                    this.websocket = new WebSocket(wsUrl);
+                    
+                    this.websocket.onopen = () => {
+                        console.log('🔌 Voice WebSocket connected');
+                        this.updateConnectionStatus('Connected', 'connected');
+                        resolve();
+                    };
+                    
+                    this.websocket.onmessage = (event) => {
+                        this.handleWebSocketMessage(JSON.parse(event.data));
+                    };
+                    
+                    this.websocket.onerror = (error) => {
+                        console.error('❌ WebSocket error:', error);
+                        this.updateConnectionStatus('Connection error', 'error');
+                        reject(error);
+                    };
+                    
+                    this.websocket.onclose = () => {
+                        console.log('🔌 WebSocket disconnected');
+                        this.updateConnectionStatus('Disconnected', 'disconnected');
+                        
+                        setTimeout(() => {
+                            if (this.isListening) {
+                                this.connectWebSocket();
+                            }
+                        }, 3000);
+                    };
+                });
+            }
+            
+            handleWebSocketMessage(message) {
+                console.log('📥 Received message:', message);
+                
+                switch (message.type) {
+                    case 'transcription':
+                        this.displayTranscription(message.text);
+                        break;
+                        
+                    case 'voice_response':
+                        this.handleVoiceResponse(message);
+                        break;
+                        
+                    case 'error':
+                        this.updateStatus(`Error: ${message.message}`, 'error');
+                        break;
+                        
+                    case 'system':
+                        console.log('ℹ️ System message:', message.message);
+                        break;
+                }
+            }
+            
+            displayTranscription(text) {
+                this.addMessage(text, 'user');
+                console.log('📝 You said:', text);
+            }
+            
+            async handleVoiceResponse(message) {
+                const responseText = message.text || message.response_text;
+                console.log('🤖 AI Response:', responseText);
+                
+                this.addMessage(responseText, 'ai', message.emotion_context);
+                
+                if (message.audio_data) {
+                    await this.playAudioResponse(message.audio_data);
+                }
+                
+                setTimeout(() => {
+                    if (this.isListening) {
+                        this.updateStatus('Listening...', 'listening');
+                    }
+                }, 500);
+            }
+            
+            async playAudioResponse(audioBase64) {
+                try {
+                    this.isSpeaking = true;
+                    this.updateStatus('AI Speaking...', 'speaking');
+                    
+                    const audioData = atob(audioBase64);
+                    const arrayBuffer = new ArrayBuffer(audioData.length);
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    
+                    for (let i = 0; i < audioData.length; i++) {
+                        uint8Array[i] = audioData.charCodeAt(i);
+                    }
+                    
+                    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                    const source = this.audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(this.audioContext.destination);
+                    
+                    source.start();
+                    
+                    source.onended = () => {
+                        this.isSpeaking = false;
+                        console.log('🔊 Audio playback finished');
+                    };
+                    
+                } catch (error) {
+                    console.error('❌ Error playing audio:', error);
+                    this.isSpeaking = false;
+                }
+            }
+            
+            async startListening(phoneNumber) {
+                if (this.isListening) return;
+                
+                this.phoneNumber = phoneNumber;
+                this.sessionId = 'voice_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                try {
+                    await this.connectWebSocket();
+                    
+                    this.isListening = true;
+                    this.conversationStarted = true;
+                    
+                    // Send initial greeting request
+                    const greetingMessage = {
+                        type: 'voice_input',
+                        audio_data: '',
+                        phone_number: this.phoneNumber,
+                        session_id: this.sessionId,
+                        is_greeting: true,
+                        timestamp: Date.now()
+                    };
+                    
+                    this.websocket.send(JSON.stringify(greetingMessage));
+                    
+                    this.updateStatus('Starting conversation...', 'processing');
+                    console.log('👂 Started voice assistant with greeting');
+                    
+                } catch (error) {
+                    console.error('❌ Error starting voice assistant:', error);
+                    this.updateStatus('Failed to start', 'error');
+                }
+            }
+            
+            stopListening() {
+                this.isListening = false;
+                this.isProcessing = false;
+                this.isSpeaking = false;
+                this.conversationStarted = false;
+                
+                if (this.websocket) {
+                    this.websocket.close();
+                }
+                
+                this.updateStatus('Conversation ended', 'ready');
+                console.log('🛑 Stopped listening');
+            }
+            
+            addMessage(text, sender, emotionContext = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message-sender';
+                senderDiv.textContent = sender === 'user' ? 'You' : 'AI Assistant';
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'message-text';
+                textDiv.textContent = text;
+                
+                messageDiv.appendChild(senderDiv);
+                messageDiv.appendChild(textDiv);
+                
+                if (emotionContext && emotionContext.detected_emotion) {
+                    const emotionDiv = document.createElement('div');
+                    emotionDiv.className = 'emotion-tag';
+                    emotionDiv.textContent = `Emotion detected: ${emotionContext.detected_emotion}`;
+                    messageDiv.appendChild(emotionDiv);
+                }
+                
+                this.conversationElement.appendChild(messageDiv);
+                this.conversationElement.scrollTop = this.conversationElement.scrollHeight;
+            }
+            
+            setUIElements(statusElement, connectionElement, visualizerBar, conversationElement) {
+                this.statusElement = statusElement;
+                this.connectionElement = connectionElement;
+                this.visualizerBar = visualizerBar;
+                this.conversationElement = conversationElement;
+            }
+            
+            updateStatus(message, type = 'ready') {
+                if (this.statusElement) {
+                    this.statusElement.textContent = message;
+                    this.statusElement.className = `status ${type}`;
+                }
+                console.log(`📊 Status: ${message} (${type})`);
+            }
+            
+            updateConnectionStatus(message, type = 'info') {
+                if (this.connectionElement) {
+                    this.connectionElement.textContent = message;
+                    this.connectionElement.className = `connection-status ${type}`;
+                }
+            }
+            
+            updateVisualizer(level) {
+                if (this.visualizerBar) {
+                    const intensity = Math.min(100, level * 200);
+                    this.visualizerBar.style.width = `${intensity}%`;
+                }
+            }
+            
+            setVADThreshold(threshold) {
+                this.vadThreshold = threshold;
+            }
+            
+            setSilenceTimeout(timeout) {
+                this.maxSilence = timeout;
+            }
+        }
+        
+        // Initialize the voice assistant
+        let voiceAssistant = null;
+        let isActive = false;
+        
+        // UI Elements
+        const phoneInput = document.getElementById('phoneNumber');
+        const voiceButton = document.getElementById('voiceButton');
+        const statusElement = document.getElementById('status');
+        const connectionElement = document.getElementById('connectionStatus');
+        const visualizerBar = document.getElementById('visualizerBar');
+        const conversation = document.getElementById('conversation');
+        const vadThreshold = document.getElementById('vadThreshold');
+        const silenceTimeout = document.getElementById('silenceTimeout');
+        const vadValue = document.getElementById('vadValue');
+        const silenceValue = document.getElementById('silenceValue');
+        
+        // Initialize voice assistant
+        async function initializeVoiceAssistant() {
+            if (voiceAssistant) return voiceAssistant;
+            
+            try {
+                voiceAssistant = new HospitalVoiceAssistant();
+                voiceAssistant.setUIElements(statusElement, connectionElement, visualizerBar, conversation);
+                
+                console.log('✅ Voice assistant initialized');
+                return voiceAssistant;
+                
+            } catch (error) {
+                console.error('❌ Error initializing voice assistant:', error);
+                statusElement.textContent = 'Initialization failed';
+                statusElement.className = 'status error';
+                return null;
+            }
+        }
+        
+        // Toggle voice assistant
+        voiceButton.addEventListener('click', async () => {
+            const phoneNumber = phoneInput.value.trim();
+            if (!phoneNumber) {
+                alert('Please enter your phone number first');
+                return;
+            }
+            
+            if (!isActive) {
+                // Start conversation
+                if (!voiceAssistant) {
+                    await initializeVoiceAssistant();
+                }
+                
+                if (voiceAssistant) {
+                    await voiceAssistant.startListening(phoneNumber);
+                    
+                    isActive = true;
+                    voiceButton.className = 'voice-button listening';
+                    voiceButton.innerHTML = '🛑';
+                    phoneInput.disabled = true;
+                }
+            } else {
+                // Stop conversation
+                if (voiceAssistant) {
+                    voiceAssistant.stopListening();
+                }
+                
+                isActive = false;
+                voiceButton.className = 'voice-button start';
+                voiceButton.innerHTML = '🎤';
+                phoneInput.disabled = false;
+            }
+        });
+        
+        // Settings handlers
+        vadThreshold.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            vadValue.textContent = value.toFixed(3);
+            if (voiceAssistant) {
+                voiceAssistant.setVADThreshold(value);
+            }
+        });
+        
+        silenceTimeout.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            silenceValue.textContent = (value / 1000).toFixed(1) + 's';
+            if (voiceAssistant) {
+                voiceAssistant.setSilenceTimeout(value);
+            }
+        });
+        
+        function toggleSettings() {
+            const settings = document.getElementById('settings');
+            settings.classList.toggle('show');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 X Hospital Voice Assistant loaded');
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (voiceAssistant) {
+                voiceAssistant.stopListening();
+            }
+        });
+    </script>
+</body>
+</html>

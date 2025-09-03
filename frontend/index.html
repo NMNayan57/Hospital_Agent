@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Hospital AI Assistant - MVP</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .option-card:hover {
+            border-color: #2196F3;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(33, 150, 243, 0.1);
+        }
+        
+        .option-card.active {
+            border-color: #2196F3;
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        }
+        
+        .option-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .option-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .option-description {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+        
+        .interface-container {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        .interface-container.active {
+            display: block;
+        }
+        
+        /* Chat Interface */
+        .chat-container {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message.user {
+            background: #2196F3;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .message.assistant {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .chat-input:focus {
+            border-color: #2196F3;
+        }
+        
+        .send-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .send-btn:hover {
+            background: #1976D2;
+        }
+        
+        /* Voice Interface */
+        .voice-container {
+            text-align: center;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .voice-status {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .voice-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: none;
+            font-size: 4em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .voice-button.idle {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .voice-button.recording {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        .voice-button.processing {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .voice-transcript {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #e8f5e8;
+            border-radius: 25px;
+            margin-top: 20px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .phone-input-container {
+            margin-bottom: 20px;
+        }
+        
+        .phone-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        
+        .phone-input:focus {
+            border-color: #2196F3;
+        }
+        
+        /* Appointments Interface Styles */
+        .appointments-container {
+            padding: 20px;
+        }
+        
+        .appointments-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .appointments-header h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .appointments-header p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .refresh-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #45a049;
+        }
+        
+        .last-updated {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .appointments-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .appointments-table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .appointments-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .appointments-table th {
+            background: #f8f9fa;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .appointments-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        
+        .appointments-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .appointments-table .recent-booking {
+            background: #e8f5e8 !important;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .channel-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .channel-chat {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .channel-voice {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-scheduled {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status-completed {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .loading-row {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        .symptoms-text {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .time-since {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                width: 95%;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 X Hospital AI Assistant</h1>
+            <p>Get medical help through Chat or Voice - Choose your preferred way to communicate</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="phone-input-container">
+                <input type="tel" id="phoneNumber" class="phone-input" placeholder="Enter your phone number (e.g., +8801234567890)" required minlength="10" maxlength="20">
+                <small style="color: #666;">Required for appointment booking and follow-up</small>
+            </div>
+            
+            <div class="options-container">
+                <div class="option-card" id="chatOption">
+                    <div class="option-icon">💬</div>
+                    <div class="option-title">Chat Assistant</div>
+                    <div class="option-description">Type your symptoms and get instant medical guidance with appointment booking</div>
+                </div>
+                
+                <div class="option-card" id="voiceOption">
+                    <div class="option-icon">🎤</div>
+                    <div class="option-title">Voice Assistant</div>
+                    <div class="option-description">Speak naturally and get voice responses like talking to a real receptionist</div>
+                </div>
+                
+                <div class="option-card" id="appointmentsOption">
+                    <div class="option-icon">📅</div>
+                    <div class="option-title">Live Appointments</div>
+                    <div class="option-description">View real-time appointment confirmations from chat and voice bookings</div>
+                </div>
+            </div>
+            
+            <!-- Chat Interface -->
+            <div id="chatInterface" class="interface-container">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message assistant">
+                            Hello! Welcome to X Hospital. I'm your AI assistant. How can I help you today?
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Type your message here..." />
+                        <button id="sendBtn" class="send-btn">Send</button>
+                    </div>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Connected to X Hospital AI Assistant</span>
+                </div>
+            </div>
+            
+            <!-- Voice Interface -->
+            <div id="voiceInterface" class="interface-container">
+                <div class="voice-container">
+                    <div class="voice-controls" style="margin-bottom: 20px;">
+                        <button id="phoneCallButton" class="phone-call-button" style="background: #4CAF50; color: white; padding: 15px 25px; border: none; border-radius: 25px; cursor: pointer; font-size: 16px; margin-right: 10px;">📞 Start Phone Call</button>
+                        <button id="endCallButton" class="end-call-button" style="background: #f44336; color: white; padding: 15px 25px; border: none; border-radius: 25px; cursor: pointer; font-size: 16px; display: none;">📞 End Call</button>
+                    </div>
+                    <div class="voice-status" id="voiceStatus">Click "Start Phone Call" for continuous conversation</div>
+                    <button id="voiceButton" class="voice-button idle">🎤</button>
+                    <div class="voice-transcript" id="voiceTranscript">
+                        Your conversation will appear here...
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span id="voiceConnectionStatus">Ready to start call</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Appointments Interface -->
+            <div id="appointmentsInterface" class="interface-container">
+                <div class="appointments-container">
+                    <div class="appointments-header">
+                        <h2>📅 Real-Time Appointment Confirmations</h2>
+                        <p>Live data from database - updates automatically as bookings are made</p>
+                        <div class="refresh-controls">
+                            <button id="refreshAppointments" class="refresh-btn">🔄 Refresh Now</button>
+                            <span id="lastUpdated" class="last-updated">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="appointments-stats" id="appointmentsStats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalAppointments">-</div>
+                            <div class="stat-label">Total Today</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="chatAppointments">-</div>
+                            <div class="stat-label">Via Chat</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="voiceAppointments">-</div>
+                            <div class="stat-label">Via Voice</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="recentAppointments">-</div>
+                            <div class="stat-label">Last 5 min</div>
+                        </div>
+                    </div>
+                    
+                    <div class="appointments-table-container">
+                        <table class="appointments-table" id="appointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Serial #</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Appointment</th>
+                                    <th>Symptoms</th>
+                                    <th>Channel</th>
+                                    <th>Booked</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsTableBody">
+                                <tr>
+                                    <td colspan="8" class="loading-row">
+                                        <div class="loading-spinner"></div>
+                                        Loading real-time appointments...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="status-indicator">
+                        <div class="status-dot" id="appointmentsStatusDot"></div>
+                        <span id="appointmentsConnectionStatus">Connecting to live data...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentInterface = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let websocket = null;
+        let isPhoneCallMode = false;
+        let autoListenTimeout = null;
+        let conversationHistory = [];
+
+        // API Configuration
+        const API_BASE = 'http://localhost:8000/api/v1';
+
+        // DOM Elements
+        const chatOption = document.getElementById('chatOption');
+        const voiceOption = document.getElementById('voiceOption');
+        const appointmentsOption = document.getElementById('appointmentsOption');
+        const chatInterface = document.getElementById('chatInterface');
+        const voiceInterface = document.getElementById('voiceInterface');
+        const appointmentsInterface = document.getElementById('appointmentsInterface');
+        const phoneNumberInput = document.getElementById('phoneNumber');
+        
+        // Chat elements
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        // Voice elements
+        const voiceButton = document.getElementById('voiceButton');
+        const voiceStatus = document.getElementById('voiceStatus');
+        const voiceTranscript = document.getElementById('voiceTranscript');
+        const voiceConnectionStatus = document.getElementById('voiceConnectionStatus');
+
+        // Event Listeners
+        chatOption.addEventListener('click', () => switchInterface('chat'));
+        voiceOption.addEventListener('click', () => switchInterface('voice'));
+        appointmentsOption.addEventListener('click', () => switchInterface('appointments'));
+        sendBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+        voiceButton.addEventListener('click', toggleVoiceRecording);
+        
+        // Phone call functionality
+        const phoneCallButton = document.getElementById('phoneCallButton');
+        const endCallButton = document.getElementById('endCallButton');
+        
+        phoneCallButton.addEventListener('click', startPhoneCall);
+        endCallButton.addEventListener('click', endPhoneCall);
+
+        function switchInterface(type) {
+            // Reset active states
+            document.querySelectorAll('.option-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.interface-container').forEach(container => container.classList.remove('active'));
+            
+            if (type === 'chat') {
+                chatOption.classList.add('active');
+                chatInterface.classList.add('active');
+                currentInterface = 'chat';
+                initializeWebSocket();
+            } else if (type === 'voice') {
+                voiceOption.classList.add('active');
+                voiceInterface.classList.add('active');
+                currentInterface = 'voice';
+                initializeVoiceRecording();
+            } else if (type === 'appointments') {
+                appointmentsOption.classList.add('active');
+                appointmentsInterface.classList.add('active');
+                currentInterface = 'appointments';
+                initializeAppointmentsView();
+            }
+        }
+
+        // Chat functionality
+        function initializeWebSocket() {
+            // For MVP, we'll use HTTP requests
+            // In production, implement WebSocket for real-time chat
+            console.log('Chat interface initialized');
+        }
+
+        async function sendChatMessage() {
+            const message = chatInput.value.trim();
+            const phoneNumber = phoneNumberInput.value.trim();
+            
+            if (!message) return;
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter your complete phone number (e.g., +8801234567890)');
+                return;
+            }
+
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            chatInput.value = '';
+
+            try {
+                // Send to chat API
+                const response = await fetch(`${API_BASE}/chat/message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        phone_number: phoneNumber
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Add assistant response to chat
+                addMessageToChat(data.response, 'assistant');
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessageToChat('Sorry, I\'m having trouble connecting to the server. Please try again or call the hospital directly at +8801712345000.', 'assistant');
+            }
+        }
+
+        function addMessageToChat(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Voice functionality
+        async function initializeVoiceRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Microphone access granted');
+                voiceConnectionStatus.textContent = 'Microphone ready';
+                
+                // Store the stream for later use
+                window.audioStream = stream;
+                
+            } catch (error) {
+                console.error('Microphone access denied:', error);
+                voiceStatus.textContent = 'Please allow microphone access to use voice features';
+                voiceConnectionStatus.textContent = 'Microphone access required';
+            }
+        }
+
+        async function toggleVoiceRecording() {
+            const phoneNumber = phoneNumberInput.value.trim();
+            
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter your complete phone number (e.g., +8801234567890)');
+                return;
+            }
+
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                if (!window.audioStream) {
+                    window.audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                }
+
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(window.audioStream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = processRecording;
+
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // Update UI
+                voiceButton.className = 'voice-button recording';
+                voiceButton.textContent = '⏹️';
+                voiceStatus.textContent = 'Recording... Click to stop';
+                voiceTranscript.textContent = 'Listening...';
+                voiceConnectionStatus.textContent = 'Recording in progress';
+
+            } catch (error) {
+                console.error('Recording start error:', error);
+                voiceStatus.textContent = 'Error starting recording';
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                
+                // Update UI
+                voiceButton.className = 'voice-button processing';
+                voiceButton.textContent = '⏳';
+                voiceStatus.textContent = 'Processing your message...';
+                voiceConnectionStatus.textContent = 'Processing audio';
+            }
+        }
+
+        async function processRecording() {
+            try {
+                // Create audio blob
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                
+                // Convert to base64
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                
+                // Send to voice API
+                const response = await fetch(`${API_BASE}/voice/call`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        audio_data: base64Audio,
+                        phone_number: phoneNumberInput.value.trim()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Display transcript
+                voiceTranscript.innerHTML = `
+                    <div style="margin-bottom: 10px;"><strong>You said:</strong> "${data.response_text || 'Processing...'}"</div>
+                    <div><strong>Assistant:</strong> "${data.response_text || 'Getting response...'}"</div>
+                `;
+
+                // Play response audio if available
+                if (data.audio_response) {
+                    playResponseAudio(data.audio_response);
+                }
+
+            } catch (error) {
+                console.error('Voice processing error:', error);
+                voiceTranscript.textContent = 'Sorry, there was an error processing your voice message. Please try again or use chat instead.';
+            } finally {
+                // Reset UI
+                resetVoiceInterface();
+            }
+        }
+
+        function playResponseAudio(base64Audio) {
+            try {
+                const audio = new Audio(`data:audio/mpeg;base64,${base64Audio}`);
+                audio.play();
+                voiceConnectionStatus.textContent = 'Playing response';
+                
+                audio.onended = () => {
+                    voiceConnectionStatus.textContent = 'Ready to listen';
+                };
+            } catch (error) {
+                console.error('Audio playback error:', error);
+            }
+        }
+
+        function resetVoiceInterface() {
+            voiceButton.className = 'voice-button idle';
+            voiceButton.textContent = '🎤';
+            voiceStatus.textContent = 'Click the microphone to start speaking';
+            voiceConnectionStatus.textContent = 'Ready to listen';
+            audioChunks = [];
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('X Hospital AI Assistant MVP loaded');
+            
+            // Set default phone number format
+            phoneNumberInput.value = '';
+            phoneNumberInput.addEventListener('input', function(e) {
+                let value = e.target.value;
+                if (!value.startsWith('+880')) {
+                    e.target.value = '+880' + value.replace(/^\+?880?/, '');
+                }
+                
+                // Visual feedback for validation
+                const isValid = e.target.value.length >= 10;
+                if (isValid) {
+                    e.target.style.borderColor = '#4CAF50';
+                } else if (e.target.value.length > 4) {
+                    e.target.style.borderColor = '#ff9800';
+                } else {
+                    e.target.style.borderColor = '#ddd';
+                }
+            });
+        });
+    </script>
+    
+    <!-- Load WebSocket manager -->
+    <script src="js/realtime.js"></script>
+    
+    <script>
+        // Enhanced functionality with WebSocket support
+        let wsManager = null;
+        let useWebSocket = true; // Set to false to fall back to HTTP requests
+
+        // Enhanced switchInterface function
+        function switchInterface(type) {
+            // Reset active states
+            document.querySelectorAll('.option-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.interface-container').forEach(container => container.classList.remove('active'));
+            
+            if (type === 'chat') {
+                chatOption.classList.add('active');
+                chatInterface.classList.add('active');
+                currentInterface = 'chat';
+                
+                if (useWebSocket) {
+                    initializeWebSocketChat();
+                } else {
+                    initializeHttpChat();
+                }
+            } else if (type === 'voice') {
+                voiceOption.classList.add('active');
+                voiceInterface.classList.add('active');
+                currentInterface = 'voice';
+                
+                if (useWebSocket) {
+                    initializeWebSocketVoice();
+                } else {
+                    initializeVoiceRecording();
+                }
+            } else if (type === 'appointments') {
+                appointmentsOption.classList.add('active');
+                appointmentsInterface.classList.add('active');
+                currentInterface = 'appointments';
+                initializeAppointmentsView();
+            }
+        }
+
+        // WebSocket Chat Implementation
+        function initializeWebSocketChat() {
+            const phoneNumber = phoneNumberInput.value.trim();
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter your complete phone number (e.g., +8801234567890)');
+                return;
+            }
+
+            if (!wsManager) {
+                wsManager = new HospitalWebSocketManager();
+            }
+
+            wsManager.connectChatWebSocket(phoneNumber);
+            wsManager.startKeepAlive();
+        }
+
+        // Enhanced sendChatMessage for WebSocket
+        async function sendChatMessage() {
+            const message = chatInput.value.trim();
+            const phoneNumber = phoneNumberInput.value.trim();
+            
+            if (!message) return;
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter your complete phone number (e.g., +8801234567890)');
+                return;
+            }
+
+            // Add user message to chat immediately
+            addMessageToChat(message, 'user');
+            chatInput.value = '';
+
+            if (useWebSocket && wsManager && wsManager.isConnected) {
+                // Send via WebSocket
+                const success = wsManager.sendChatMessage(message);
+                if (!success) {
+                    // Fall back to HTTP
+                    await sendChatMessageHttp(message, phoneNumber);
+                }
+            } else {
+                // Use HTTP request
+                await sendChatMessageHttp(message, phoneNumber);
+            }
+        }
+
+        // HTTP fallback for chat
+        async function sendChatMessageHttp(message, phoneNumber) {
+            try {
+                const response = await fetch(`${API_BASE}/chat/message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        phone_number: phoneNumber
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                addMessageToChat(data.response, 'assistant');
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessageToChat('Sorry, I\'m having trouble connecting. Please try again.', 'assistant');
+            }
+        }
+
+        // WebSocket Voice Implementation
+        function initializeWebSocketVoice() {
+            const phoneNumber = phoneNumberInput.value.trim();
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter your complete phone number (e.g., +8801234567890)');
+                return;
+            }
+
+            if (!wsManager) {
+                wsManager = new HospitalWebSocketManager();
+            }
+
+            wsManager.connectVoiceWebSocket(phoneNumber);
+            initializeVoiceRecording(); // Still need microphone access
+        }
+
+        // Enhanced voice recording with WebSocket support
+        async function processRecording() {
+            try {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                
+                if (useWebSocket && wsManager && wsManager.voiceSocket) {
+                    // Send via WebSocket
+                    wsManager.sendVoiceMessage({
+                        type: 'voice_audio',
+                        audio_data: base64Audio
+                    });
+                } else {
+                    // Fall back to HTTP
+                    await processRecordingHttp(base64Audio);
+                }
+
+            } catch (error) {
+                console.error('Voice processing error:', error);
+                voiceTranscript.textContent = 'Sorry, there was an error processing your voice message.';
+                resetVoiceInterface();
+            }
+        }
+
+        // HTTP fallback for voice
+        async function processRecordingHttp(base64Audio) {
+            try {
+                const response = await fetch(`${API_BASE}/voice/call`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        audio_data: base64Audio,
+                        phone_number: phoneNumberInput.value.trim()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                voiceTranscript.innerHTML = `
+                    <div style="margin-bottom: 10px;"><strong>Assistant:</strong> "${data.response_text}"</div>
+                `;
+
+                if (data.audio_response) {
+                    playResponseAudio(data.audio_response);
+                }
+
+            } catch (error) {
+                console.error('Voice processing error:', error);
+                voiceTranscript.textContent = 'Error processing voice message.';
+            } finally {
+                resetVoiceInterface();
+            }
+        }
+
+        // Connection status monitoring
+        function monitorConnectionStatus() {
+            setInterval(() => {
+                if (wsManager) {
+                    const chatConnected = wsManager.chatSocket && wsManager.chatSocket.readyState === WebSocket.OPEN;
+                    const voiceConnected = wsManager.voiceSocket && wsManager.voiceSocket.readyState === WebSocket.OPEN;
+                    
+                    // Update UI indicators
+                    if (currentInterface === 'chat') {
+                        updateConnectionIndicator('chat', chatConnected);
+                    } else if (currentInterface === 'voice') {
+                        updateConnectionIndicator('voice', voiceConnected);
+                    }
+                }
+            }, 5000);
+        }
+
+        function updateConnectionIndicator(type, connected) {
+            const indicator = document.querySelector(`#${type}Interface .status-dot`);
+            const status = document.querySelector(`#${type}Interface .status-indicator span`);
+            
+            if (indicator && status) {
+                if (connected) {
+                    indicator.className = 'status-dot connected';
+                    status.textContent = 'Real-time connection active';
+                } else {
+                    indicator.className = 'status-dot disconnected';
+                    status.textContent = 'Using standard connection';
+                }
+            }
+        }
+
+        // Enhanced initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('X Hospital AI Assistant MVP with WebSocket support loaded');
+            
+            // Set default phone number format
+            phoneNumberInput.value = '';
+            phoneNumberInput.addEventListener('input', function(e) {
+                let value = e.target.value;
+                if (!value.startsWith('+880')) {
+                    e.target.value = '+880' + value.replace(/^\+?880?/, '');
+                }
+                
+                // Visual feedback for validation
+                const isValid = e.target.value.length >= 10;
+                if (isValid) {
+                    e.target.style.borderColor = '#4CAF50';
+                } else if (e.target.value.length > 4) {
+                    e.target.style.borderColor = '#ff9800';
+                } else {
+                    e.target.style.borderColor = '#ddd';
+                }
+            });
+
+            // Start connection monitoring
+            monitorConnectionStatus();
+
+            // Check WebSocket support
+            if (typeof WebSocket === 'undefined') {
+                console.warn('WebSocket not supported, falling back to HTTP');
+                useWebSocket = false;
+            }
+        });
+
+        // Phone Call Functionality
+        async function startPhoneCall() {
+            const phoneNumber = phoneNumberInput.value.trim();
+            
+            if (!phoneNumber || phoneNumber.length < 10) {
+                alert('Please enter your complete phone number first');
+                return;
+            }
+            
+            try {
+                isPhoneCallMode = true;
+                phoneCallButton.style.display = 'none';
+                endCallButton.style.display = 'inline-block';
+                
+                voiceStatus.textContent = 'Connecting call...';
+                voiceConnectionStatus.textContent = 'Connecting...';
+                
+                // Initialize WebSocket voice connection
+                if (!wsManager) {
+                    wsManager = new HospitalWebSocketManager();
+                }
+                
+                await wsManager.connectVoiceWebSocket(phoneNumber);
+                await initializeVoiceRecording();
+                setupMediaRecorderForPhoneCall();
+                
+                // Start with greeting
+                addToConversationHistory('assistant', 'Hello! Welcome to X Hospital. I\'m your AI assistant. How can I help you today?');
+                updateVoiceTranscript();
+                
+                // Speak the greeting
+                const greetingAudio = await synthesizeGreeting();
+                if (greetingAudio) {
+                    playAudio(greetingAudio);
+                }
+                
+                voiceStatus.textContent = '📞 Call Connected - Listening...';
+                voiceConnectionStatus.textContent = 'Call in progress';
+                
+                // Start continuous listening after greeting
+                setTimeout(() => {
+                    if (isPhoneCallMode) {
+                        startContinuousListening();
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Failed to start phone call:', error);
+                voiceStatus.textContent = 'Failed to connect call. Please try again.';
+                voiceConnectionStatus.textContent = 'Connection failed';
+                endPhoneCall();
+            }
+        }
+        
+        function endPhoneCall() {
+            isPhoneCallMode = false;
+            phoneCallButton.style.display = 'inline-block';
+            endCallButton.style.display = 'none';
+            
+            if (autoListenTimeout) {
+                clearTimeout(autoListenTimeout);
+                autoListenTimeout = null;
+            }
+            
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            
+            voiceStatus.textContent = 'Call ended. Click "Start Phone Call" to call again.';
+            voiceConnectionStatus.textContent = 'Call ended';
+            
+            addToConversationHistory('system', 'Call ended. Thank you for contacting X Hospital!');
+            updateVoiceTranscript();
+        }
+        
+        async function startContinuousListening() {
+            if (!isPhoneCallMode) return;
+            
+            try {
+                voiceStatus.textContent = '📞 Listening... Speak now';
+                voiceConnectionStatus.textContent = 'Listening';
+                
+                // Start recording
+                audioChunks = [];
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // Auto-stop after 10 seconds of recording
+                setTimeout(() => {
+                    if (isRecording && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                }, 10000);
+                
+            } catch (error) {
+                console.error('Failed to start listening:', error);
+                if (isPhoneCallMode) {
+                    // Retry listening in phone call mode
+                    setTimeout(() => {
+                        if (isPhoneCallMode) {
+                            startContinuousListening();
+                        }
+                    }, 2000);
+                }
+            }
+        }
+        
+        function addToConversationHistory(role, message) {
+            conversationHistory.push({
+                role: role,
+                message: message,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        function updateVoiceTranscript() {
+            const transcript = document.getElementById('voiceTranscript');
+            
+            let html = '<div class="conversation-history">';
+            conversationHistory.slice(-6).forEach(entry => {
+                const roleClass = entry.role === 'user' ? 'user-message' : 'assistant-message';
+                const roleIcon = entry.role === 'user' ? '🗣️' : entry.role === 'assistant' ? '🏥' : 'ℹ️';
+                
+                html += `
+                    <div class="${roleClass}" style="margin: 10px 0; padding: 10px; border-radius: 8px; background: ${entry.role === 'user' ? '#e3f2fd' : '#f0f8ff'};">
+                        <strong>${roleIcon} ${entry.role.charAt(0).toUpperCase() + entry.role.slice(1)}:</strong>
+                        <div style="margin-top: 5px;">${entry.message}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            transcript.innerHTML = html;
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+        
+        async function synthesizeGreeting() {
+            // This would connect to TTS service - for now return null
+            // In real implementation, would use ElevenLabs or OpenAI TTS
+            return null;
+        }
+        
+        function playAudio(audioData) {
+            // Play audio response
+            try {
+                const audio = new Audio(`data:audio/mpeg;base64,${audioData}`);
+                audio.play();
+            } catch (error) {
+                console.error('Audio playback error:', error);
+            }
+        }
+        
+        // Enhanced voice recording with continuous conversation
+        const originalToggleVoiceRecording = window.toggleVoiceRecording || function() {};
+        
+        window.toggleVoiceRecording = async function() {
+            if (isPhoneCallMode) {
+                // In phone call mode, recording is automatic
+                return;
+            } else {
+                // Use original single-interaction mode
+                return await originalToggleVoiceRecording();
+            }
+        };
+        
+        // Override media recorder handlers for phone call mode
+        function setupMediaRecorderForPhoneCall() {
+            if (mediaRecorder) {
+                mediaRecorder.ondataavailable = function(event) {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async function() {
+                    if (!isPhoneCallMode) return;
+                    
+                    isRecording = false;
+                    voiceStatus.textContent = '📞 Processing your speech...';
+                    voiceConnectionStatus.textContent = 'Processing...';
+                    
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    
+                    // Convert to base64 and send for processing
+                    const reader = new FileReader();
+                    reader.onloadend = async function() {
+                        const base64Audio = reader.result.split(',')[1];
+                        
+                        try {
+                            // Send to voice processing
+                            const response = await fetch(`${API_BASE}/voice/process`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    audio_data: base64Audio,
+                                    phone_number: phoneNumberInput.value.trim()
+                                })
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.transcript) {
+                                addToConversationHistory('user', result.transcript);
+                            }
+                            
+                            if (result.response) {
+                                addToConversationHistory('assistant', result.response);
+                            }
+                            
+                            updateVoiceTranscript();
+                            
+                            // Play AI response audio if available
+                            if (result.audio_response) {
+                                playAudio(result.audio_response);
+                            }
+                            
+                            voiceStatus.textContent = '📞 Call Connected - Listening...';
+                            voiceConnectionStatus.textContent = 'Ready for your response';
+                            
+                            // Continue listening after response is played
+                            setTimeout(() => {
+                                if (isPhoneCallMode) {
+                                    startContinuousListening();
+                                }
+                            }, result.audio_response ? 5000 : 2000); // Wait longer if audio is playing
+                            
+                        } catch (error) {
+                            console.error('Voice processing error:', error);
+                            voiceStatus.textContent = '📞 Processing error - trying again...';
+                            
+                            // Retry listening
+                            setTimeout(() => {
+                                if (isPhoneCallMode) {
+                                    startContinuousListening();
+                                }
+                            }, 2000);
+                        }
+                    };
+                    
+                    reader.readAsDataURL(audioBlob);
+                };
+            }
+        }
+
+        // Appointments functionality
+        let appointmentsInterval = null;
+        
+        function initializeAppointmentsView() {
+            console.log('Initializing appointments view');
+            loadAppointments();
+            startAppointmentsPolling();
+            
+            // Add refresh button listener
+            const refreshBtn = document.getElementById('refreshAppointments');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', loadAppointments);
+            }
+        }
+        
+        function startAppointmentsPolling() {
+            // Clear existing interval
+            if (appointmentsInterval) {
+                clearInterval(appointmentsInterval);
+            }
+            
+            // Poll every 10 seconds for real-time updates
+            appointmentsInterval = setInterval(() => {
+                if (currentInterface === 'appointments') {
+                    loadAppointments();
+                }
+            }, 10000);
+        }
+        
+        async function loadAppointments() {
+            try {
+                const statusDot = document.getElementById('appointmentsStatusDot');
+                const statusText = document.getElementById('appointmentsConnectionStatus');
+                
+                statusText.textContent = 'Fetching live data...';
+                
+                // Fetch recent appointments
+                const response = await fetch(`${API_BASE}/scheduler/appointments/live/recent`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update table
+                updateAppointmentsTable(data.appointments);
+                
+                // Update stats
+                updateAppointmentsStats(data.appointments);
+                
+                // Update status
+                statusDot.style.background = '#4CAF50';
+                statusText.textContent = `Live data - Last updated: ${data.update_time}`;
+                
+                // Update last updated time
+                const lastUpdated = document.getElementById('lastUpdated');
+                if (lastUpdated) {
+                    lastUpdated.textContent = `Updated: ${data.update_time}`;
+                }
+                
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                
+                const statusDot = document.getElementById('appointmentsStatusDot');
+                const statusText = document.getElementById('appointmentsConnectionStatus');
+                
+                statusDot.style.background = '#f44336';
+                statusText.textContent = 'Connection error - trying to reconnect...';
+                
+                // Show error in table
+                const tbody = document.getElementById('appointmentsTableBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="loading-row" style="color: #f44336;">
+                                ⚠️ Connection error. Please check your internet connection or try refreshing.
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+        
+        function updateAppointmentsTable(appointments) {
+            const tbody = document.getElementById('appointmentsTableBody');
+            if (!tbody) return;
+            
+            if (appointments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="loading-row">
+                            📅 No appointments found in the last 24 hours.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            appointments.forEach(apt => {
+                const row = document.createElement('tr');
+                if (apt.is_recent) {
+                    row.classList.add('recent-booking');
+                }
+                
+                row.innerHTML = `
+                    <td><strong>${apt.serial_number}</strong></td>
+                    <td>
+                        <div>${apt.patient_name}</div>
+                        <div style="font-size: 11px; color: #888;">${apt.patient_phone}</div>
+                    </td>
+                    <td>
+                        <div><strong>Dr. ${apt.doctor_name}</strong></div>
+                        <div style="font-size: 11px; color: #666;">${apt.doctor_specialty}</div>
+                    </td>
+                    <td>
+                        <div>${apt.formatted_datetime}</div>
+                        <div style="font-size: 11px; color: #666;">${apt.appointment_date}</div>
+                    </td>
+                    <td>
+                        <div class="symptoms-text" title="${apt.symptoms}">${apt.symptoms}</div>
+                    </td>
+                    <td>
+                        <span class="channel-badge channel-${apt.booking_channel}">
+                            ${apt.booking_channel_icon} ${apt.booking_channel.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="time-since">${apt.time_since_booking}</div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${apt.status}">${apt.status.toUpperCase()}</span>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateAppointmentsStats(appointments) {
+            const totalEl = document.getElementById('totalAppointments');
+            const chatEl = document.getElementById('chatAppointments');
+            const voiceEl = document.getElementById('voiceAppointments');
+            const recentEl = document.getElementById('recentAppointments');
+            
+            if (!totalEl) return;
+            
+            const total = appointments.length;
+            const chat = appointments.filter(apt => apt.booking_channel === 'chat').length;
+            const voice = appointments.filter(apt => apt.booking_channel === 'voice').length;
+            const recent = appointments.filter(apt => apt.is_recent).length;
+            
+            totalEl.textContent = total;
+            chatEl.textContent = chat;
+            voiceEl.textContent = voice;
+            recentEl.textContent = recent;
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (wsManager) {
+                wsManager.disconnect();
+            }
+            if (isPhoneCallMode) {
+                endPhoneCall();
+            }
+            if (appointmentsInterval) {
+                clearInterval(appointmentsInterval);
+            }
+        });
+    </script>
+</body>
+</html>

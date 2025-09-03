@@ -1,0 +1,95 @@
+You are building an AI-powered hospital assistant for a demo hospital called “X Hospital.”
+The goal is to handle patient interactions via both chat and phone calls in real time.
+You have access to:
+
+OpenAI API (for chat + reasoning).
+
+ElevenLabs API (for text-to-speech, real-time phone calls).
+
+Whisper API (for speech-to-text from patient calls).
+
+A small demo hospital database (doctor schedules, departments, appointment slots).
+
+RAG (retrieval augmented generation) to fetch the latest hospital data in real time.
+
+Main Features to Implement:
+
+Patient Interaction
+
+Chat: Patients can book appointments via WhatsApp, Messenger, or hospital website chat.
+
+Call: Patients can call the hospital number, and an AI voice agent will respond naturally in real time.
+
+Doctor Schedule Integration
+
+Use the hospital database to check doctor availability and timeslots in real time.
+
+Example demo database:
+
+Dr. Rahman (Cardiologist): Mon–Thu, 6:00 PM – 8:00 PM
+
+Dr. Ayesha (Gastroenterologist): Sat–Tue, 4:00 PM – 6:00 PM
+
+Dr. Karim (General Physician): Every day, 10:00 AM – 2:00 PM
+
+Keep track of booked slots and prevent double-booking.
+
+Smart Doctor Suggestion
+
+If a patient describes symptoms, the AI suggests the correct doctor.
+
+Examples:
+
+“Chest pain” → Cardiologist
+
+“Fever + cough” → General Physician
+
+“Stomach pain” → Gastroenterologist
+
+Appointment Booking
+
+Once confirmed, the AI provides:
+
+Doctor name + specialization
+
+Appointment time + date
+
+Serial number
+
+Save booking in the demo hospital database.
+
+Ensure if a chat agent books a 7:00 PM slot, and a call agent tries at the same time, the second agent sees the update immediately and offers 7:30 PM instead.
+
+Pre-visit Guidance
+
+After booking, share doctor-specific instructions:
+
+Gastro: “Please don’t eat anything for 5 hours before your visit.”
+
+Blood test: “Drink water before you come.”
+
+Cardiology: “Bring your past ECG reports.”
+
+System Setup
+
+Use RAG to always check the latest database state before confirming any slot.
+
+Database should store:
+
+Doctors (name, specialty, available hours).
+
+Slots (time, booked/free).
+
+Patients (name, phone, booking history).
+
+All bookings should update in real time for both chat and call agents.
+
+Agent Requirements:
+
+Be polite and conversational, like a real hospital receptionist.
+
+Always confirm patient details (name, phone number) before booking.
+
+If a patient is unsure, guide them with questions and doctor suggestions.
+
+Handle both chat (text) and call (voice) seamlessly.

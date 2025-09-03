@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(curl:*)",
+      "Bash(tree:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout 10 curl -s http://localhost:8000/health)",
+      "Bash(timeout 10 curl -s http://localhost:8000/voice)",
+      "Bash(timeout 5 curl -s http://localhost:8000/health)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
